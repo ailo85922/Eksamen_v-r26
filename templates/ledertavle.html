@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="no">
+<head>
+  <meta charset="UTF-8">
+  <title>Leaderboard</title>
+  <style>
+    /* Sentrerer siden */
+    body {
+      font-family: Arial;
+      background: #f4f4f4;
+      display: flex;
+      justify-content: center;
+      padding: 40px;
+    }
+
+    /* Hvit boks rundt tabellen */
+    .container {
+      background: white;
+      padding: 30px;
+      border-radius: 10px;
+      width: 400px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    }
+
+    /* Stilsetter tabellen */
+    table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    /* Stilsetter rader i tabellen */
+    th, td {
+      padding: 10px;
+      border-bottom: 1px solid #ddd;
+      text-align: left;
+    }
+
+    /* Fremhever kolonneoverskriftene */
+    th {
+      background: green;
+      color: white;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h2>🏆 Leaderboard</h2>
+
+    <!-- Tabell som viser alle spillere og poeng fra databasen -->
+    <table>
+      <tr>
+        <th>Navn</th>
+        <th>Poeng</th>
+      </tr>
+
+      <!-- Looper gjennom alle spillere sendt fra Flask -->
+      {% for spiller in spillere %}
+      <tr>
+        <td>{{ spiller[0] }}</td>
+        <td>{{ spiller[1] }}</td>
+      </tr>
+      {% endfor %}
+    </table>
+  </div>
+</body>
+</html>

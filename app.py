@@ -1,80 +1,70 @@
-from flask import Flask, render_template, request
-import random
+from flask import Flask, render_template, request, session, redirect, url_for
 import sqlite3
 
 app = Flask(__name__)
+# Hemmelig nøkkel for å sikre session-data
+app.secret_key = "hemmelig_nøkkel"
 
-# 🔧 INIT DATABASE
 def init_db():
-    conn = sqlite3.connect("game.db")
-    c = conn.cursor()
-
-    c.execute("""
-        CREATE TABLE IF NOT EXISTS scores (
+    conn = sqlite3.connect("database.db")
+    cursor = conn.cursor()
+    # Oppretter brukertabell
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS brukere (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
-            attempts INTEGER
+            brukernavn TEXT,
+            passord TEXT
         )
     """)
-
     conn.commit()
     conn.close()
 
-init_db()
-
-# 🎯 GAME STATE
-number = random.randint(1, 100)
-attempts = 0
-
-
-@app.route("/", methods=["GET", "POST"])
-def index():
-    global number, attempts
-    message = ""
-
+# Registrering
+@app.route("/registrer", methods=["GET", "POST"])
+def registrer():
     if request.method == "POST":
-        guess = request.form.get("guess")
+        brukernavn = request.form["brukernavn"]
+        passord = request.form["passord"]
+        conn = sqlite3.connect("database.db")
+        cursor = conn.cursor()
+        cursor.execute("INSERT INTO brukere (brukernavn, passord) VALUES (?, ?)", (brukernavn, passord))
+        conn.commit()
+        conn.close()
+        return redirect(url_for("logg_inn"))
+    return render_template("registrer.html")
 
-        # 🛡️ FEILHÅNDTERING (brukerstøtte)
-        if not guess or not guess.isdigit():
-            return render_template("index.html", message="Skriv et gyldig tall!")
-
-        guess = int(guess)
-        attempts += 1
-
-        if guess < number:
-            message = "For lavt"
-        elif guess > number:
-            message = "For høyt"
+# Innlogging
+@app.route("/logg_inn", methods=["GET", "POST"])
+def logg_inn():
+    if request.method == "POST":
+        brukernavn = request.form["brukernavn"]
+        passord = request.form["passord"]
+        conn = sqlite3.connect("database.db")
+        cursor = conn.cursor()
+        cursor.execute("SELECT * FROM brukere WHERE brukernavn=? AND passord=?", (brukernavn, passord))
+        bruker = cursor.fetchone()
+        conn.close()
+        if bruker:
+            # Lagrer brukernavn i session
+            session["brukernavn"] = brukernavn
+            return redirect(url_for("hjem"))
         else:
-            message = f"Riktig! Du brukte {attempts} forsøk 🎉"
+            return render_template("logg_inn.html", feil="Feil brukernavn eller passord")
+    return render_template("logg_inn.html")
 
-            # 💾 LAGRE TIL DATABASE
-            conn = sqlite3.connect("game.db")
-            c = conn.cursor()
-            c.execute("INSERT INTO scores (attempts) VALUES (?)", (attempts,))
-            conn.commit()
-            conn.close()
+# Logg ut
+@app.route("/logg_ut")
+def logg_ut():
+    session.pop("brukernavn", None)
+    return redirect(url_for("logg_inn"))
 
-            # 🔄 RESTART SPILL
-            number = random.randint(1, 100)
-            attempts = 0
-
-    return render_template("index.html", message=message)
-
-
-# 📊 VIS SCORE (valgfri ekstra)
-@app.route("/scores")
-def scores():
-    conn = sqlite3.connect("game.db")
-    c = conn.cursor()
-
-    c.execute("SELECT * FROM scores ORDER BY id DESC")
-    data = c.fetchall()
-
-    conn.close()
-
-    return {"scores": data}
-
+@app.route("/")
+def hjem():
+    # Sjekker om brukeren er innlogget
+    if "brukernavn" not in session:
+        return redirect(url_for("logg_inn"))
+    return render_template("index.html", brukernavn=session["brukernavn"])
 
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", debug=True)
+    init_db()
+    app.run(debug=True)
