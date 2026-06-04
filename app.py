@@ -1,5 +1,6 @@
 from flask import Flask, render_template, request, session, redirect, url_for
 import sqlite3
+import random
 
 app = Flask(__name__)
 # Hemmelig nøkkel for å sikre session-data
@@ -16,8 +17,23 @@ def init_db():
             passord TEXT
         )
     """)
+    # Oppretter leaderboard-tabell
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS leaderboard (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            navn TEXT,
+            poeng INTEGER
+        )
+    """)
     conn.commit()
     conn.close()
+
+# Hjemside – krever innlogging
+@app.route("/")
+def hjem():
+    if "brukernavn" not in session:
+        return redirect(url_for("logg_inn"))
+    return render_template("index.html", brukernavn=session["brukernavn"])
 
 # Registrering
 @app.route("/registrer", methods=["GET", "POST"])
@@ -56,14 +72,54 @@ def logg_inn():
 @app.route("/logg_ut")
 def logg_ut():
     session.pop("brukernavn", None)
+    session.pop("tall", None)
     return redirect(url_for("logg_inn"))
 
-@app.route("/")
-def hjem():
-    # Sjekker om brukeren er innlogget
+# Gjett-spillet
+@app.route("/gjett", methods=["GET", "POST"])
+def gjett():
     if "brukernavn" not in session:
         return redirect(url_for("logg_inn"))
-    return render_template("index.html", brukernavn=session["brukernavn"])
+    if "tall" not in session:
+        session["tall"] = random.randint(1, 100)
+    message = ""
+    if request.method == "POST":
+        guess = int(request.form["guess"])
+        if guess < session["tall"]:
+            message = "For lavt!"
+        elif guess > session["tall"]:
+            message = "For høyt!"
+        else:
+            message = "Riktig! 🎉"
+            session.pop("tall", None)
+    return render_template("index.html", message=message)
+
+# Leaderboard
+@app.route("/leaderboard")
+def leaderboard():
+    if "brukernavn" not in session:
+        return redirect(url_for("logg_inn"))
+    conn = sqlite3.connect("database.db")
+    cursor = conn.cursor()
+    # Henter alle spillere sortert etter poeng
+    cursor.execute("SELECT navn, poeng FROM leaderboard ORDER BY poeng DESC")
+    spillere = cursor.fetchall()
+    conn.close()
+    return render_template("leaderboard.html", spillere=spillere)
+
+# Lagre poeng til leaderboard
+@app.route("/lagre", methods=["POST"])
+def lagre():
+    if "brukernavn" not in session:
+        return redirect(url_for("logg_inn"))
+    navn = session["brukernavn"]
+    poeng = request.form["poeng"]
+    conn = sqlite3.connect("database.db")
+    cursor = conn.cursor()
+    cursor.execute("INSERT INTO leaderboard (navn, poeng) VALUES (?, ?)", (navn, poeng))
+    conn.commit()
+    conn.close()
+    return redirect(url_for("leaderboard"))
 
 if __name__ == "__main__":
     init_db()
