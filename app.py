@@ -82,25 +82,28 @@ def gjett():
         return redirect(url_for("logg_inn"))
     if "tall" not in session:
         session["tall"] = random.randint(1, 100)
-    
+        session["forsok"] = 0  # Teller forsøk
+
     message = ""
     if request.method == "POST":
+        session["forsok"] += 1  # Legger til ett forsøk
         guess = int(request.form["guess"])
         if guess < session["tall"]:
             message = "For lavt!"
         elif guess > session["tall"]:
             message = "For høyt!"
         else:
-            message = "Riktig! 🎉"
-            # Lagrer poeng til databasen
+            poeng = max(100 - (session["forsok"] - 1) * 10, 10)  # Færre poeng per forsøk
+            message = f"Riktig! 🎉 Du fikk {poeng} poeng!"
             conn = sqlite3.connect("database.db")
             cursor = conn.cursor()
-            cursor.execute("INSERT INTO ledertavle (navn, poeng) VALUES (?, ?)", 
-                         (session["brukernavn"], 100))
+            cursor.execute("INSERT INTO ledertavle (navn, poeng) VALUES (?, ?)",
+                         (session["brukernavn"], poeng))
             conn.commit()
             conn.close()
             session.pop("tall", None)
-    
+            session.pop("forsok", None)
+
     return render_template("gjett.html", message=message)
 
 # Leaderboard
