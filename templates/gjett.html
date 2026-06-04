@@ -2,7 +2,7 @@
 <html lang="no">
 <head>
   <meta charset="UTF-8">
-  <title>Logg inn</title>
+  <title>Gjett tallet</title>
   <style>
     body {
       font-family: Arial;
@@ -16,9 +16,9 @@
       background: white;
       padding: 30px;
       border-radius: 10px;
+      text-align: center;
       width: 300px;
       box-shadow: 0 0 10px rgba(0,0,0,0.1);
-      text-align: center;
     }
     input {
       padding: 10px;
@@ -37,25 +37,24 @@
     button:hover {
       background: darkgreen;
     }
-    .feil {
-      color: red;
-      margin-top: 10px;
+    .message {
+      margin-top: 15px;
+      font-weight: bold;
     }
   </style>
 </head>
 <body>
   <div class="container">
-    <h2>Logg inn</h2>
-    <form method="POST">
-      <input type="text" name="brukernavn" placeholder="Brukernavn"><br>
-      <input type="password" name="passord" placeholder="Passord"><br>
-      <button type="submit">Logg inn</button>
+    <h2>Gjett tallet 🎯</h2>
+    <form method="POST" action="/gjett">
+      <input type="text" name="guess" placeholder="Skriv et tall">
+      <button type="submit">Gjett</button>
     </form>
-    <!-- Viser feilmelding hvis feil brukernavn/passord -->
-    {% if feil %}
-    <p class="feil">{{ feil }}</p>
-    {% endif %}
-    <p>Ingen bruker? <a href="/registrer">Registrer deg</a></p>
+    <div class="message">
+      {{ message }}
+    </div>
+    <br>
+    <a href="/" style="color: green;">Tilbake til hjem</a>
   </div>
 </body>
 </html>

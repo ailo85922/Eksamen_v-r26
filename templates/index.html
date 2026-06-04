@@ -2,11 +2,8 @@
 <html lang="no">
 <head>
   <meta charset="UTF-8">
-  <title>Gjett tallet</title>
-
-  <!-- AI-generert kode med kommentarer -->
+  <title>Hjem</title>
   <style>
-    /* Sentrerer innholdet midt på siden */
     body {
       font-family: Arial;
       background: #f4f4f4;
@@ -15,8 +12,6 @@
       align-items: center;
       height: 100vh;
     }
-
-    /* Hvit boks med skygge rundt spillet */
     .container {
       background: white;
       padding: 30px;
@@ -25,72 +20,27 @@
       width: 300px;
       box-shadow: 0 0 10px rgba(0,0,0,0.1);
     }
-
-    /* Stilsetter tekstfeltet */
-    input {
-      padding: 10px;
-      width: 80%;
+    a {
+      display: block;
       margin: 10px 0;
-    }
-
-    /* Stilsetter knappen */
-    button {
-      padding: 10px 20px;
+      padding: 10px;
       background: green;
       color: white;
-      border: none;
-      cursor: pointer;
-      border-radius: 10px;
-      transition: background 0.3s;
-    }
-
-    
-      /* Stilsetter knappen */
-    button {
-      padding: 10px 20px;
-      background: green;
-      color: white;
-      border: none;
-      cursor: pointer;
+      text-decoration: none;
       border-radius: 5px;
       transition: background 0.3s;
     }
-
-/* Mørkere grønn når man holder over knappen */
-button:hover {
-  background: darkgreen;
-}
-    /* Stilsetter meldingen som vises etter gjetting */
-    .message {
-      margin-top: 15px;
-      font-weight: bold;
+    a:hover {
+      background: darkgreen;
     }
   </style>
 </head>
-
 <body>
   <div class="container">
-    <h2>Gjett tallet 🎯</h2>
-
-    <!-- Skjema som sender gjetningen til Flask via POST -->
-    <form method="POST">
-      <input type="text" name="guess" placeholder="Skriv et tall">
-      <button type="submit">Gjett</button>
-    </form>
-
-    <!-- Viser tilbakemelding fra Flask (riktig/feil/for høyt osv.) -->
-    <div class="message">
-      {{ message }}
-    </div>
-
-    <!-- Viser en popup-melding hvis det finnes en melding -->
-    <script>
-      const msg = "{{ message }}";
-      if (msg) {
-        alert(msg);
-      }
-    </script>
-
+    <h2>Velkommen, {{ brukernavn }}! 👋</h2>
+    <a href="/gjett">Spill gjett-spillet 🎯</a>
+    <a href="/ledertavle">Ledertavle 🏆</a>
+    <a href="/logg_ut">Logg ut</a>
   </div>
 </body>
 </html>

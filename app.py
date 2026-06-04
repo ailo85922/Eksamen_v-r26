@@ -19,7 +19,7 @@ def init_db():
     """)
     # Oppretter leaderboard-tabell
     cursor.execute("""
-        CREATE TABLE IF NOT EXISTS leaderboard (
+        CREATE TABLE IF NOT EXISTS ledertavle (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             navn TEXT,
             poeng INTEGER
@@ -82,6 +82,7 @@ def gjett():
         return redirect(url_for("logg_inn"))
     if "tall" not in session:
         session["tall"] = random.randint(1, 100)
+    
     message = ""
     if request.method == "POST":
         guess = int(request.form["guess"])
@@ -91,21 +92,29 @@ def gjett():
             message = "For høyt!"
         else:
             message = "Riktig! 🎉"
+            # Lagrer poeng til databasen
+            conn = sqlite3.connect("database.db")
+            cursor = conn.cursor()
+            cursor.execute("INSERT INTO leaderboard (navn, poeng) VALUES (?, ?)", 
+                         (session["brukernavn"], 100))
+            conn.commit()
+            conn.close()
             session.pop("tall", None)
-    return render_template("index.html", message=message)
+    
+    return render_template("gjett.html", message=message)
 
 # Leaderboard
-@app.route("/leaderboard")
-def leaderboard():
+@app.route("/ledertavle")
+def ledertavle():
     if "brukernavn" not in session:
         return redirect(url_for("logg_inn"))
     conn = sqlite3.connect("database.db")
     cursor = conn.cursor()
     # Henter alle spillere sortert etter poeng
-    cursor.execute("SELECT navn, poeng FROM leaderboard ORDER BY poeng DESC")
+    cursor.execute("SELECT navn, poeng FROM ledertavle ORDER BY poeng DESC")
     spillere = cursor.fetchall()
     conn.close()
-    return render_template("leaderboard.html", spillere=spillere)
+    return render_template("ledertavle.html", spillere=spillere)
 
 # Lagre poeng til leaderboard
 @app.route("/lagre", methods=["POST"])
@@ -116,11 +125,11 @@ def lagre():
     poeng = request.form["poeng"]
     conn = sqlite3.connect("database.db")
     cursor = conn.cursor()
-    cursor.execute("INSERT INTO leaderboard (navn, poeng) VALUES (?, ?)", (navn, poeng))
+    cursor.execute("INSERT INTO ledertavle (navn, poeng) VALUES (?, ?)", (navn, poeng))
     conn.commit()
     conn.close()
-    return redirect(url_for("leaderboard"))
+    return redirect(url_for("ledertavle"))
 
 if __name__ == "__main__":
     init_db()
-    app.run(debug=True)
+    app.run(debug=True, host="0.0.0.0")
