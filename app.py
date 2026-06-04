@@ -95,7 +95,7 @@ def gjett():
             # Lagrer poeng til databasen
             conn = sqlite3.connect("database.db")
             cursor = conn.cursor()
-            cursor.execute("INSERT INTO leaderboard (navn, poeng) VALUES (?, ?)", 
+            cursor.execute("INSERT INTO ledertavle (navn, poeng) VALUES (?, ?)", 
                          (session["brukernavn"], 100))
             conn.commit()
             conn.close()
