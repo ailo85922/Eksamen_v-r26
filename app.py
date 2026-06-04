@@ -111,7 +111,7 @@ def gjett():
 def ledertavle():
     if "brukernavn" not in session:
         return redirect(url_for("logg_inn"))
-    conn = sqlite3.connect("database.db")
+    conn = sqlite3.connect("database.")
     cursor = conn.cursor()
     # Henter alle spillere sortert etter poeng
     cursor.execute("SELECT navn, poeng FROM ledertavle ORDER BY poeng DESC")
